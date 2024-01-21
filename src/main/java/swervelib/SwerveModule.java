@@ -234,6 +234,8 @@ public class SwerveModule
     {
       SmartDashboard.putNumber("Module[" + configuration.name + "] Speed Setpoint", desiredState.speedMetersPerSecond);
       SmartDashboard.putNumber("Module[" + configuration.name + "] Angle Setpoint", desiredState.angle.getDegrees());
+      SmartDashboard.putNumber("Module[" + configuration.name + "] Angle Absolute Position", getAbsolutePosition());
+      SmartDashboard.putNumber("Module[" + configuration.name + "] Angle Relative Position", getRelativePosition());
     }
   }
 

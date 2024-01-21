@@ -12,8 +12,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAnalogSensor;
 import com.revrobotics.SparkPIDController;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import java.util.function.Supplier;
 import swervelib.encoders.SwerveAbsoluteEncoder;
 import swervelib.parser.PIDFConfig;
@@ -56,11 +54,6 @@ public class SparkMaxSwerve extends SwerveMotor
   {
     this.motor = motor;
     this.isDriveMotor = isDriveMotor;
-
-    // ##### TODO REMOVE THIS JUNK
-    System.out.println (motor + " " + motor.getDeviceId() + " " + isDriveMotor);
-    // ####
-
     factoryDefaults();
     clearStickyFaults();
 
@@ -344,11 +337,6 @@ public class SparkMaxSwerve extends SwerveMotor
   public void set(double percentOutput)
   {
     motor.set(percentOutput);
-
-    // ###
-
-    System.out.println("Calling motor.set");
-    SmartDashboard.putNumber("Motor" + motor.getDeviceId() + "Percent Output", percentOutput);
   }
 
   /**
@@ -360,7 +348,6 @@ public class SparkMaxSwerve extends SwerveMotor
   @Override
   public void setReference(double setpoint, double feedforward)
   {
-
     boolean possibleBurnOutIssue = true;
 //    int pidSlot =
 //        isDriveMotor ? SparkMAX_slotIdx.Velocity.ordinal() : SparkMAX_slotIdx.Position.ordinal();

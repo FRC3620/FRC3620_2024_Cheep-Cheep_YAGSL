@@ -9,6 +9,8 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
+import com.revrobotics.CANSparkMax;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -18,11 +20,15 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.io.File;
+import java.net.CacheRequest;
+
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
+import swervelib.SwerveModule;
 import swervelib.math.SwerveMath;
 import swervelib.parser.SwerveControllerConfiguration;
 import swervelib.parser.SwerveDriveConfiguration;
@@ -30,8 +36,7 @@ import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
-public class SwerveSubsystem extends SubsystemBase
-{
+public class SwerveSubsystem extends SubsystemBase {
 
   /**
    * Swerve drive object.
@@ -65,13 +70,11 @@ public class SwerveSubsystem extends SubsystemBase
 
     // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary objects being created.
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
-    try
-    {
+    try {
       swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed);
       // Alternative method if you don't want to supply the conversion factor via JSON files.
       // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
-    } catch (Exception e)
-    {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
@@ -121,13 +124,11 @@ public class SwerveSubsystem extends SubsystemBase
    * @param setOdomToStart Set the odometry position to the start of the path.
    * @return {@link AutoBuilder#followPath(PathPlannerPath)} path command.
    */
-  public Command getAutonomousCommand(String pathName, boolean setOdomToStart)
-  {
+  public Command getAutonomousCommand(String pathName, boolean setOdomToStart) {
     // Load the path you want to follow using its name in the GUI
     PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
 
-    if (setOdomToStart)
-    {
+    if (setOdomToStart) {
       resetOdometry(new Pose2d(path.getPoint(0).position, getHeading()));
     }
 
@@ -191,6 +192,13 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
+    SwerveModule[] swerveModules = swerveDrive.getSwerveModules();
+    for(var swerveModule: swerveModules) 
+    {
+      CANSparkMax swerveMotor = (CANSparkMax)swerveModule.getAngleMotor().getMotor();
+      String configName = swerveModule.getConfiguration().name;
+      SmartDashboard.putNumber("SwerveMotor[" + configName + "] Angle Applied Output", swerveMotor.getAppliedOutput());
+    }
   }
 
   @Override
