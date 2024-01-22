@@ -401,6 +401,6 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void setOpenLoop(boolean isOpenLoop) {
-    this.openLoop = isOpenloop;
+    this.openLoop = isOpenLoop;
   }
 }

@@ -45,7 +45,7 @@ public class RobotContainer
    */
   public RobotContainer()
   {
-    drivebase.setOpenLoop(false);
+    // drivebase.setOpenLoop(true);
     
     // Configure the trigger bindings
     configureBindings();
