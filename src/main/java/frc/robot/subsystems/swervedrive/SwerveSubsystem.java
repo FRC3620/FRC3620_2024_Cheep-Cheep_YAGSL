@@ -46,7 +46,10 @@ public class SwerveSubsystem extends SubsystemBase {
    * Maximum speed of the robot in meters per second, used to limit acceleration.
    */
   public        double      maximumSpeed = Units.feetToMeters(14.5);
-
+  /**
+   * Whether or not to drive open loop
+   */
+  private       boolean     openLoop = false;
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
    *
@@ -166,7 +169,7 @@ public class SwerveSubsystem extends SubsystemBase {
     swerveDrive.drive(translation,
                       rotation,
                       fieldRelative,
-                      false); // Open loop is disabled since it shouldn't be used most of the time.
+                      openLoop); // Open loop is disabled since it shouldn't be used most of the time.
   }
 
   /**
@@ -192,7 +195,7 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void periodic()
   {
-    SwerveModule[] swerveModules = swerveDrive.getSwerveModules();
+    SwerveModule[] swerveModules = swerveDrive.getModules();
     for(var swerveModule: swerveModules) 
     {
       String configName = swerveModule.getConfiguration().name;
@@ -395,5 +398,9 @@ public class SwerveSubsystem extends SubsystemBase {
   public void addFakeVisionReading()
   {
     swerveDrive.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
+  }
+
+  public void setOpenLoop(boolean isOpenLoop) {
+    this.openLoop = isOpenloop;
   }
 }

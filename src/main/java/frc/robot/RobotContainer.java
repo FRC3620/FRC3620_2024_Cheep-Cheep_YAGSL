@@ -45,6 +45,8 @@ public class RobotContainer
    */
   public RobotContainer()
   {
+    drivebase.setOpenLoop(false);
+    
     // Configure the trigger bindings
     configureBindings();
 
@@ -84,13 +86,6 @@ public class RobotContainer
                                                                                  OperatorConstants.LEFT_Y_DEADBAND),
                                                     () -> MathUtil.applyDeadband(driverXbox.getLeftX(),
                                                                                  OperatorConstants.LEFT_X_DEADBAND),
-                                                    () -> driverXbox.getRawAxis(2), () -> true); // LIAR!
-
-    TeleopDrive openFieldRel = new TeleopDrive(drivebase,
-                                                    () -> MathUtil.applyDeadband(driverXbox.getLeftY(),
-                                                                                 OperatorConstants.LEFT_Y_DEADBAND),
-                                                    () -> MathUtil.applyDeadband(driverXbox.getLeftX(),
-                                                                                 OperatorConstants.LEFT_X_DEADBAND),
                                                     () -> driverXbox.getRawAxis(2), () -> true);
 
     TeleopDrive closedFieldRel = new TeleopDrive(
@@ -100,7 +95,7 @@ public class RobotContainer
         () -> -driverController.getRawAxis(2), () -> false);
 
     //drivebase.setDefaultCommand(!RobotBase.isSimulation() ? openFieldRel : closedFieldAbsoluteDrive);
-    drivebase.setDefaultCommand(openFieldRel);
+    drivebase.setDefaultCommand(closedFieldRel);
   }
 
   /**
