@@ -45,7 +45,7 @@ public class SwerveSubsystem extends SubsystemBase {
   /**
    * Maximum speed of the robot in meters per second, used to limit acceleration.
    */
-  public        double      maximumSpeed = Units.feetToMeters(14.5);
+  public        double      maximumSpeed = 1; // Units.feetToMeters(14.5);
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -197,11 +197,12 @@ public class SwerveSubsystem extends SubsystemBase {
     {
       String configName = swerveModule.getConfiguration().name;
 
-      CANSparkMax swerveMotor = (CANSparkMax)swerveModule.getAngleMotor().getMotor();
-      SmartDashboard.putNumber("SwerveMotor[" + configName + "] Angle Applied Output", swerveMotor.getAppliedOutput());
+      CANSparkMax angleMotor = (CANSparkMax)swerveModule.getAngleMotor().getMotor();
+      SmartDashboard.putNumber("SwerveMotor[" + configName + "] Angle Applied Output", angleMotor.getAppliedOutput());
 
-      CANSparkMax swerveDrive = (CANSparkMax)swerveModule.getDriveMotor().getMotor();
-      SmartDashboard.putNumber("SwerveMotor[" + configName + "] Drive Applied Output", swerveDrive.getAppliedOutput());
+      CANSparkMax driveMotor = (CANSparkMax)swerveModule.getDriveMotor().getMotor();
+      SmartDashboard.putNumber("SwerveMotor[" + configName + "] Drive Applied Output", driveMotor.getAppliedOutput());
+      SmartDashboard.putNumber("SwerveMotor[" + configName + "] Drive Amperage", driveMotor.getOutputCurrent());
     }
   }
 
