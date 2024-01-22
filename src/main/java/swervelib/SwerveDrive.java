@@ -479,6 +479,8 @@ public class SwerveDrive
     {
       module.setDesiredState(desiredStates[module.moduleNumber], isOpenLoop, false);
 
+      SmartDashboard.putString ("module." + module.configuration.name + ".status", "open:" + isOpenLoop + ", drivespeed=" + desiredStates[module.moduleNumber].speedMetersPerSecond);
+
       if (SwerveDriveTelemetry.verbosity.ordinal() >= TelemetryVerbosity.HIGH.ordinal())
       {
         SwerveDriveTelemetry.desiredStates[module.moduleNumber *

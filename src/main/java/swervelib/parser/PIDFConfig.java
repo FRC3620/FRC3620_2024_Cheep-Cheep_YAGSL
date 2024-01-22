@@ -38,8 +38,7 @@ public class PIDFConfig
   /**
    * Used when parsing PIDF values from JSON.
    */
-  public PIDFConfig()
-  {
+  public PIDFConfig() {
   }
 
   /**

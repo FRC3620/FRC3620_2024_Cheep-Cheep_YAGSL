@@ -195,9 +195,13 @@ public class SwerveSubsystem extends SubsystemBase {
     SwerveModule[] swerveModules = swerveDrive.getSwerveModules();
     for(var swerveModule: swerveModules) 
     {
-      CANSparkMax swerveMotor = (CANSparkMax)swerveModule.getAngleMotor().getMotor();
       String configName = swerveModule.getConfiguration().name;
+
+      CANSparkMax swerveMotor = (CANSparkMax)swerveModule.getAngleMotor().getMotor();
       SmartDashboard.putNumber("SwerveMotor[" + configName + "] Angle Applied Output", swerveMotor.getAppliedOutput());
+
+      CANSparkMax swerveDrive = (CANSparkMax)swerveModule.getDriveMotor().getMotor();
+      SmartDashboard.putNumber("SwerveMotor[" + configName + "] Drive Applied Output", swerveDrive.getAppliedOutput());
     }
   }
 
