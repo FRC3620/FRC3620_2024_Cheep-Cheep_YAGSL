@@ -192,7 +192,7 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void periodic()
   {
-    SwerveModule[] swerveModules = swerveDrive.getSwerveModules();
+    SwerveModule[] swerveModules = swerveDrive.getModules();
     for(var swerveModule: swerveModules) 
     {
       String configName = swerveModule.getConfiguration().name;
