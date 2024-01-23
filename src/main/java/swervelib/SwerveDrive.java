@@ -465,6 +465,14 @@ public class SwerveDrive
    */
   private void setRawModuleStates(SwerveModuleState[] desiredStates, boolean isOpenLoop)
   {
+    {
+      List<Double> velocities = new ArrayList<>();
+      for (var swerveModuleState : desiredStates) {
+        velocities.add(swerveModuleState.speedMetersPerSecond);
+      }
+      Double[] speeds = velocities.toArray(new Double[velocities.size()]);
+      SmartDashboard.putNumberArray ("rawspeeds", speeds);
+    }
     // Desaturates wheel speeds
     if (attainableMaxTranslationalSpeedMetersPerSecond != 0 || attainableMaxRotationalVelocityRadiansPerSecond != 0)
     {
@@ -472,6 +480,14 @@ public class SwerveDrive
                                                   maxSpeedMPS,
                                                   attainableMaxTranslationalSpeedMetersPerSecond,
                                                   attainableMaxRotationalVelocityRadiansPerSecond);
+    }
+    {
+      List<Double> velocities = new ArrayList<>();
+      for (var swerveModuleState : desiredStates) {
+        velocities.add(swerveModuleState.speedMetersPerSecond);
+      }
+      Double[] speeds = velocities.toArray(new Double[velocities.size()]);
+      SmartDashboard.putNumberArray ("desaturatedspeeds", speeds);
     }
 
     // Sets states
