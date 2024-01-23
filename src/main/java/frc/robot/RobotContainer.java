@@ -112,30 +112,30 @@ public class RobotContainer
     //drivebase.setDefaultCommand(!RobotBase.isSimulation() ? openFieldRel : closedFieldAbsoluteDrive);
     drivebase.setDefaultCommand(sitThereCommand);
 
-    SmartDashboard.putData("Forward 0.6", new TestDriveCommand(
+    SmartDashboard.putData("Forward Fast", new TestDriveCommand(
         drivebase,
         () -> 0.0,
-        () -> 0.6,
+        () -> 0.2,
         () -> 0.0,
         () -> false
     ));
-    SmartDashboard.putData("Forward 0.3", new TestDriveCommand(
+    SmartDashboard.putData("Forward Slow", new TestDriveCommand(
         drivebase,
         () -> 0.0,
-        () -> 0.3,
+        () -> 0.1,
         () -> 0.0,
         () -> false
     ));
-    SmartDashboard.putData("Right 0.6", new TestDriveCommand(
+    SmartDashboard.putData("Right Slow", new TestDriveCommand(
         drivebase,
-        () -> 0.6,
+        () -> 0.1,
         () -> 0.0,
         () -> 0.0,
         () -> false
     ));
-    SmartDashboard.putData("Left 0.6", new TestDriveCommand(
+    SmartDashboard.putData("Left Slow", new TestDriveCommand(
         drivebase,
-        () -> -0.6,
+        () -> -0.1,
         () -> 0.0,
         () -> 0.0,
         () -> false
