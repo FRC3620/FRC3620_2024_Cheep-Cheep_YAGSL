@@ -109,8 +109,8 @@ public class RobotContainer
         () -> 0.0,
         () -> false
     );
-    //drivebase.setDefaultCommand(!RobotBase.isSimulation() ? openFieldRel : closedFieldAbsoluteDrive);
-    drivebase.setDefaultCommand(sitThereCommand);
+    drivebase.setDefaultCommand(closedFieldAbsoluteDrive);
+    //drivebase.setDefaultCommand(sitThereCommand);
 
     SmartDashboard.putData("Forward Fast", new TestDriveCommand(
         drivebase,
