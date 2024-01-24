@@ -10,16 +10,19 @@ java {
 
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
 
-/*
 sourceSets {
-    main {
+    swervelib {
         java {
             srcDir 'YAGSL-Example/src/main/java'
             include 'swervelib/'
         }
     }
+    main {
+        java {
+            compileClasspath += swervelib.classes
+        }
+    }
 }
-*/
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
