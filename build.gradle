@@ -11,15 +11,41 @@ java {
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
 
 sourceSets {
+    /*
     swervelib {
         java {
             srcDir 'YAGSL-Example/src/main/java'
-            include 'swervelib/'
+            include 'swervelib/**'
         }
     }
+    */
     main {
         java {
-            compileClasspath += swervelib.classes
+            srcDir 'YAGSL-Example/src/main/java/swervelib'
+        }
+    }
+}
+
+/*
+// https://gist.github.com/bazted/550b9206ec5dc1e0450083959a43cab2
+sourceSets.each {
+    println(it)
+    it.allSource.each {
+        println(it)
+    }
+}
+*/
+
+// https://www.baeldung.com/gradle-source-sets
+task xxx(){
+    doLast{
+        sourceSets.each { srcSet ->
+            println "["+srcSet.name+"]"
+            print "-->Source directories: "+srcSet.allJava.srcDirs+"\n"
+            srcSet.allSource.each { f -> 
+                println "-->  "+f
+            }
+            print "-->Output directories: "+srcSet.output.classesDirs.files+"\n"
         }
     }
 }
