@@ -12,8 +12,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAnalogSensor;
 import com.revrobotics.SparkPIDController;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import java.util.function.Supplier;
 import swervelib.encoders.SwerveAbsoluteEncoder;
 import swervelib.parser.PIDFConfig;
@@ -341,7 +339,6 @@ public class SparkMaxSwerve extends SwerveMotor
   @Override
   public void set(double percentOutput)
   {
-    SmartDashboard.putNumber(dashboardName("percent"), percentOutput);
     motor.set(percentOutput);
   }
 
@@ -359,10 +356,8 @@ public class SparkMaxSwerve extends SwerveMotor
 //        isDriveMotor ? SparkMAX_slotIdx.Velocity.ordinal() : SparkMAX_slotIdx.Position.ordinal();
     int pidSlot = 0;
 
-    SmartDashboard.putNumber(dashboardName("feedforward"), feedforward);
     if (isDriveMotor)
     {
-      SmartDashboard.putNumber(dashboardName("velocity.setpoint"), setpoint);
       configureSparkMax(() ->
                             pid.setReference(
                                 setpoint,
@@ -371,7 +366,6 @@ public class SparkMaxSwerve extends SwerveMotor
                                 feedforward));
     } else
     {
-      SmartDashboard.putNumber(dashboardName("position.setpoint"), setpoint);
       configureSparkMax(() ->
                             pid.setReference(
                                 setpoint,
@@ -396,6 +390,39 @@ public class SparkMaxSwerve extends SwerveMotor
   public void setReference(double setpoint, double feedforward, double position)
   {
     setReference(setpoint, feedforward);
+  }
+
+  /**
+   * Get the voltage output of the motor controller.
+   *
+   * @return Voltage output.
+   */
+  @Override
+  public double getVoltage()
+  {
+    return motor.getAppliedOutput() * motor.getBusVoltage();
+  }
+
+  /**
+   * Set the voltage of the motor.
+   *
+   * @param voltage Voltage to set.
+   */
+  @Override
+  public void setVoltage(double voltage)
+  {
+    motor.setVoltage(voltage);
+  }
+
+  /**
+   * Get the applied dutycycle output.
+   *
+   * @return Applied dutycycle output to the motor.
+   */
+  @Override
+  public double getAppliedOutput()
+  {
+    return motor.getAppliedOutput();
   }
 
   /**
@@ -432,10 +459,6 @@ public class SparkMaxSwerve extends SwerveMotor
     {
       configureSparkMax(() -> encoder.setPosition(position));
     }
-  }
-
-  String dashboardName(String s) {
-    return "motor." + motor.getDeviceId() + "." + s;
   }
 
   /**

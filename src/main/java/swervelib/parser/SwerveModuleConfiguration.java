@@ -65,7 +65,7 @@ public class SwerveModuleConfiguration
   /**
    * Should do cosine compensation when not pointing correct direction;.
    */
-  public boolean           useCosineCompensator;
+  public boolean               useCosineCompensator;
 
   /**
    * Construct a configuration object for swerve modules.
@@ -84,7 +84,7 @@ public class SwerveModuleConfiguration
    * @param physicalCharacteristics Physical characteristics of the swerve module.
    * @param name                    The name for the swerve module.
    * @param conversionFactors       Conversion factors to be applied to the drive and angle motors.
-   * @oaram useCosineCompensator    Should use consineCompensation.
+   * @param useCosineCompensator    Should use cosineCompensation.
    */
   public SwerveModuleConfiguration(
       SwerveMotor driveMotor,
@@ -134,7 +134,7 @@ public class SwerveModuleConfiguration
    * @param velocityPIDF            Velocity PIDF configuration.
    * @param physicalCharacteristics Physical characteristics of the swerve module.
    * @param name                    Name for the module.
-   * @oaram useCosineCompensator    Should use consineCompensation.
+   * @param useCosineCompensator    Should use cosineCompensation.
    */
   public SwerveModuleConfiguration(
       SwerveMotor driveMotor,
@@ -164,7 +164,7 @@ public class SwerveModuleConfiguration
         false,
         false,
         false,
-        name, 
+        name,
         useCosineCompensator);
   }
 

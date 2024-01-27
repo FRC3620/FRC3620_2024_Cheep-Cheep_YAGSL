@@ -2,6 +2,7 @@ package swervelib;
 
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -58,7 +59,7 @@ public class SwerveModule
   /**
    * Last swerve module state applied.
    */
-  public        SwerveModuleState      lastState;
+  private       SwerveModuleState      lastState;
   /**
    * Angle offset from the absolute encoder.
    */
@@ -114,7 +115,6 @@ public class SwerveModule
     {
       absoluteEncoder.factoryDefault();
       absoluteEncoder.configure(moduleConfiguration.absoluteEncoderInverted);
-      angleMotor.setPosition(getAbsolutePosition());
     }
 
     // Config angle motor/controller
@@ -123,6 +123,12 @@ public class SwerveModule
     angleMotor.configurePIDWrapping(0, 180);
     angleMotor.setInverted(moduleConfiguration.angleMotorInverted);
     angleMotor.setMotorBrake(false);
+
+    // Set the position AFTER settings the conversion factor.
+    if (absoluteEncoder != null)
+    {
+      angleMotor.setPosition(getAbsolutePosition());
+    }
 
     // Config drive motor/controller
     driveMotor.configureIntegratedEncoder(moduleConfiguration.conversionFactors.drive);
@@ -194,65 +200,33 @@ public class SwerveModule
   public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean force)
   {
     desiredState = SwerveModuleState.optimize(desiredState, Rotation2d.fromDegrees(getAbsolutePosition()));
-
-    CANSparkMax cdm = (CANSparkMax) driveMotor.getMotor();
+    // Cosine compensation.
+    double velocity = configuration.useCosineCompensator ? getCosineCompensatedVelocity(desiredState)
+                                                         : desiredState.speedMetersPerSecond;
 
     if (isOpenLoop)
     {
       double percentOutput = desiredState.speedMetersPerSecond / maxSpeed;
-      if(percentOutput > 0.2) 
-      {
-        percentOutput = 0.2;
-      } 
-      else if(percentOutput < -0.2) 
-      {
-        percentOutput = -0.2;
-      }
+      percentOutput = MathUtil.clamp(percentOutput, -0.2, 0.2);
       driveMotor.set(percentOutput);
     } else
     {
-      double cosineScalar = 1.0;
-      if (configuration.useCosineCompensator) {
-        // Taken from the CTRE SwerveModule class.
-        // https://api.ctr-electronics.com/phoenix6/release/java/src-html/com/ctre/phoenix6/mechanisms/swerve/SwerveModule.html#line.46
-        /* From FRC 900's whitepaper, we add a cosine compensator to the applied drive velocity */
-        /* To reduce the "skew" that occurs when changing direction */
-        double steerMotorError = desiredState.angle.getDegrees() - getAbsolutePosition();
-        /* If error is close to 0 rotations, we're already there, so apply full power */
-        /* If the error is close to 0.25 rotations, then we're 90 degrees, so movement doesn't help us at all */
-        cosineScalar = Math.cos(Units.degreesToRadians(steerMotorError));
-        SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".cosineScalar", cosineScalar);
-        SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".steermotorerror", steerMotorError);
-        /* Make sure we don't invert our drive, even though we shouldn't ever target over 90 degrees anyway */
-        if (cosineScalar < 0.0)
-        {
-          cosineScalar = 0.0;
-        }
+      if (driveMotor.getMotor() instanceof CANSparkMax) {
+        CANSparkMax cdm = (CANSparkMax) driveMotor.getMotor();
+        SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".outputMax", cdm.getPIDController().getOutputMax());
+        SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".outputMin", cdm.getPIDController().getOutputMin());
+      
       }
-      SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".outputMax", cdm.getPIDController().getOutputMax());
-      SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".outputMin", cdm.getPIDController().getOutputMin());
-
-
-      double velocity = desiredState.speedMetersPerSecond * (cosineScalar);
-      if(velocity > 0.125) 
-      {
-        velocity = 0.125;
-      } 
-      else if(velocity < -0.125) 
-      {
-        velocity = -0.125;
-      }
+      velocity = MathUtil.clamp(velocity, -0.125, 0.125);
       driveMotor.setReference(velocity, feedforward.calculate(velocity));
     }
 
-    /* // Not necessary anymore.
     // If we are forcing the angle
     if (!force)
     {
-    // Prevents module rotation if speed is less than 1%
+      // Prevents module rotation if speed is less than 1%
       SwerveMath.antiJitter(desiredState, lastState, Math.min(maxSpeed, 4));
     }
-     */
 
     // Prevent module rotation if angle is the same as the previous angle.
     // Synchronize encoders if queued and send in the current position as the value from the absolute encoder.
@@ -274,6 +248,12 @@ public class SwerveModule
       simModule.updateStateAndPosition(desiredState);
     }
 
+    if (SwerveDriveTelemetry.verbosity.ordinal() >= TelemetryVerbosity.HIGH.ordinal())
+    {
+      SwerveDriveTelemetry.desiredStates[moduleNumber * 2] = desiredState.angle.getDegrees();
+      SwerveDriveTelemetry.desiredStates[(moduleNumber * 2) + 1] = velocity;
+    }
+
     if (SwerveDriveTelemetry.verbosity == TelemetryVerbosity.HIGH)
     {
       SmartDashboard.putNumber("Module[" + configuration.name + "] Speed Setpoint", desiredState.speedMetersPerSecond);
@@ -281,6 +261,32 @@ public class SwerveModule
       SmartDashboard.putNumber("Module[" + configuration.name + "] Angle Absolute Position", getAbsolutePosition());
       SmartDashboard.putNumber("Module[" + configuration.name + "] Angle Relative Position", getRelativePosition());
     }
+  }
+
+  /**
+   * Get the cosine compensated velocity to set the swerve module to.
+   *
+   * @param desiredState Desired {@link SwerveModuleState} to use.
+   * @return Cosine compensated velocity in meters/second.
+   */
+  private double getCosineCompensatedVelocity(SwerveModuleState desiredState)
+  {
+    double cosineScalar = 1.0;
+    // Taken from the CTRE SwerveModule class.
+    // https://api.ctr-electronics.com/phoenix6/release/java/src-html/com/ctre/phoenix6/mechanisms/swerve/SwerveModule.html#line.46
+    /* From FRC 900's whitepaper, we add a cosine compensator to the applied drive velocity */
+    /* To reduce the "skew" that occurs when changing direction */
+    double steerMotorError = desiredState.angle.getDegrees() - getAbsolutePosition();
+    /* If error is close to 0 rotations, we're already there, so apply full power */
+    /* If the error is close to 0.25 rotations, then we're 90 degrees, so movement doesn't help us at all */
+    cosineScalar = Math.cos(Units.degreesToRadians(steerMotorError));
+    /* Make sure we don't invert our drive, even though we shouldn't ever target over 90 degrees anyway */
+    if (cosineScalar < 0.0)
+    {
+      cosineScalar = 0.0;
+    }
+
+    return desiredState.speedMetersPerSecond * (cosineScalar);
   }
 
   /**
