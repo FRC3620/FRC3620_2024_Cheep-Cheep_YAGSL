@@ -5,6 +5,9 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
@@ -109,7 +112,7 @@ public class RobotContainer
         () -> 0.0,
         () -> false
     );
-    drivebase.setDefaultCommand(closedFieldAbsoluteDrive);
+    drivebase.setDefaultCommand(closedAbsoluteDrive);
     //drivebase.setDefaultCommand(sitThereCommand);
 
     SmartDashboard.putData("Forward Fast", new TestDriveCommand(
@@ -135,11 +138,31 @@ public class RobotContainer
     ));
     SmartDashboard.putData("Left Slow", new TestDriveCommand(
         drivebase,
+        () -> 0.0,
+        () -> 0.0,
         () -> -0.1,
-        () -> 0.0,
-        () -> 0.0,
         () -> false
     ));
+
+    SmartDashboard.putData("Turn Right", new TestDriveCommand(
+      drivebase,
+      () -> 0.0, 
+      () -> 0.0, 
+      () -> 0.1, 
+      () -> false
+    ));
+
+    SmartDashboard.putData("Turn Left", new TestDriveCommand(
+      drivebase,
+      () -> 0.0, 
+      () -> 0.0, 
+      () -> -0.1, 
+      () -> false
+    ));
+
+    SmartDashboard.putData("Turn to 180 degrees", drivebase.driveToPose(new Pose2d(new Translation2d(0,0), Rotation2d.fromDegrees(180.0))));
+    SmartDashboard.putData("Turn to 0 degrees", drivebase.driveToPose(new Pose2d(new Translation2d(0,0), Rotation2d.fromDegrees(0.0))));
+    SmartDashboard.putData("Turn to 90 degrees", drivebase.driveToPose(new Pose2d(new Translation2d(0,0), Rotation2d.fromDegrees(90.0))));
 
   }
 

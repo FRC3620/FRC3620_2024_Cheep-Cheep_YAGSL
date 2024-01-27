@@ -4,6 +4,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import swervelib.parser.SwerveControllerConfiguration;
 
 /**
@@ -203,6 +205,8 @@ public class SwerveController
   {
     // Calculates an angular rate using a PIDController and the commanded angle. Returns a value between -1 and 1
     // which is then scaled to be between -maxAngularVelocity and +maxAngularVelocity.
+    SmartDashboard.putNumber("swerve.targetHeading", Units.radiansToDegrees(targetHeadingAngleRadians));
+    
     return getRawTargetSpeeds(xSpeed, ySpeed,
                               thetaController.calculate(currentHeadingAngleRadians, targetHeadingAngleRadians) *
                               config.maxAngularVelocity);
@@ -217,6 +221,7 @@ public class SwerveController
    */
   public double headingCalculate(double currentHeadingAngleRadians, double targetHeadingAngleRadians)
   {
+    SmartDashboard.putNumber("swerve.targetHeading", Units.radiansToDegrees(targetHeadingAngleRadians));
     return thetaController.calculate(currentHeadingAngleRadians, targetHeadingAngleRadians) * config.maxAngularVelocity;
   }
 

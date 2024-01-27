@@ -195,9 +195,19 @@ public class SwerveModule
   {
     desiredState = SwerveModuleState.optimize(desiredState, Rotation2d.fromDegrees(getAbsolutePosition()));
 
+    CANSparkMax cdm = (CANSparkMax) driveMotor.getMotor();
+
     if (isOpenLoop)
     {
       double percentOutput = desiredState.speedMetersPerSecond / maxSpeed;
+      if(percentOutput > 0.2) 
+      {
+        percentOutput = 0.2;
+      } 
+      else if(percentOutput < -0.2) 
+      {
+        percentOutput = -0.2;
+      }
       driveMotor.set(percentOutput);
     } else
     {
@@ -211,7 +221,6 @@ public class SwerveModule
         /* If error is close to 0 rotations, we're already there, so apply full power */
         /* If the error is close to 0.25 rotations, then we're 90 degrees, so movement doesn't help us at all */
         cosineScalar = Math.cos(Units.degreesToRadians(steerMotorError));
-        CANSparkMax cdm = (CANSparkMax) driveMotor.getMotor();
         SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".cosineScalar", cosineScalar);
         SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".steermotorerror", steerMotorError);
         /* Make sure we don't invert our drive, even though we shouldn't ever target over 90 degrees anyway */
@@ -220,8 +229,19 @@ public class SwerveModule
           cosineScalar = 0.0;
         }
       }
+      SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".outputMax", cdm.getPIDController().getOutputMax());
+      SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".outputMin", cdm.getPIDController().getOutputMin());
+
 
       double velocity = desiredState.speedMetersPerSecond * (cosineScalar);
+      if(velocity > 0.125) 
+      {
+        velocity = 0.125;
+      } 
+      else if(velocity < -0.125) 
+      {
+        velocity = -0.125;
+      }
       driveMotor.setReference(velocity, feedforward.calculate(velocity));
     }
 
