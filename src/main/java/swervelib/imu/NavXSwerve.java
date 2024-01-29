@@ -157,6 +157,14 @@ public class NavXSwerve extends SwerveIMU
   @Override
   public Rotation3d getRotation3d()
   {
+    SmartDashboard.putNumber("gyro.rawz", gyro.getYaw());
+    Rotation3d g = gyro.getRotation3d();
+    SmartDashboard.putNumber("gyro.x", g.getX());
+    SmartDashboard.putNumber("gyro.y", g.getY());
+    SmartDashboard.putNumber("gyro.z", g.getZ());
+    SmartDashboard.putNumber("gyro.offset.x", offset.getX());
+    SmartDashboard.putNumber("gyro.offset.y", offset.getY());
+    SmartDashboard.putNumber("gyro.offset.z", offset.getZ());
     return gyro.getRotation3d().minus(offset);
   }
 
