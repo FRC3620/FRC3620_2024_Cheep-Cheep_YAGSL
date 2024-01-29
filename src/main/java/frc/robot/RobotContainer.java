@@ -112,31 +112,31 @@ public class RobotContainer
         () -> 0.0,
         () -> false
     );
-    drivebase.setDefaultCommand(closedAbsoluteDrive);
-    //drivebase.setDefaultCommand(sitThereCommand);
+    //drivebase.setDefaultCommand(closedAbsoluteDrive);
+    drivebase.setDefaultCommand(sitThereCommand);
 
-    SmartDashboard.putData("Forward Fast", new TestDriveCommand(
+    SmartDashboard.putData("Y=0.2", new TestDriveCommand(
         drivebase,
         () -> 0.0,
         () -> 0.2,
         () -> 0.0,
         () -> false
     ));
-    SmartDashboard.putData("Forward Slow", new TestDriveCommand(
+    SmartDashboard.putData("Y=0.1", new TestDriveCommand(
         drivebase,
         () -> 0.0,
         () -> 0.1,
         () -> 0.0,
         () -> false
     ));
-    SmartDashboard.putData("Right Slow", new TestDriveCommand(
+    SmartDashboard.putData("X=0.1", new TestDriveCommand(
         drivebase,
         () -> 0.1,
         () -> 0.0,
         () -> 0.0,
         () -> false
     ));
-    SmartDashboard.putData("Left Slow", new TestDriveCommand(
+    SmartDashboard.putData("Omega=-0.1", new TestDriveCommand(
         drivebase,
         () -> 0.0,
         () -> 0.0,
@@ -144,7 +144,7 @@ public class RobotContainer
         () -> false
     ));
 
-    SmartDashboard.putData("Turn Right", new TestDriveCommand(
+    SmartDashboard.putData("Omega=0.0", new TestDriveCommand(
       drivebase,
       () -> 0.0, 
       () -> 0.0, 
@@ -152,13 +152,14 @@ public class RobotContainer
       () -> false
     ));
 
+    /* 
     SmartDashboard.putData("Turn Left", new TestDriveCommand(
       drivebase,
       () -> 0.0, 
       () -> 0.0, 
       () -> -0.1, 
       () -> false
-    ));
+    ));*/
 
     SmartDashboard.putData("Turn to 180 degrees", drivebase.driveToPose(new Pose2d(new Translation2d(0,0), Rotation2d.fromDegrees(180.0))));
     SmartDashboard.putData("Turn to 0 degrees", drivebase.driveToPose(new Pose2d(new Translation2d(0,0), Rotation2d.fromDegrees(0.0))));
