@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDrive;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteFieldDrive;
+import frc.robot.commands.swervedrive.drivebase.SuperSwerveDrive;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.commands.swervedrive.drivebase.TeleopDrive;
 import frc.robot.commands.swervedrive.drivebase.TestDriveCommand;
@@ -38,6 +39,8 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                          "swerve"));
+
+  private final SuperSwerveController superSwerveController = new SuperSwerveController(drivebase);
   // CommandJoystick rotationController = new CommandJoystick(1);
   // Replace with CommandPS4Controller or CommandJoystick if needed
   CommandJoystick driverController = new CommandJoystick(1);
@@ -98,6 +101,14 @@ public class RobotContainer
                                                                                  OperatorConstants.LEFT_X_DEADBAND),
                                                     () -> -driverXbox.getRawAxis(4), () -> true);
 
+    SuperSwerveDrive SuperFieldRel = new SuperSwerveDrive(drivebase, 
+                                                    superSwerveController,
+                                                    () -> MathUtil.applyDeadband(-driverXbox.getLeftY(),
+                                                                                 OperatorConstants.LEFT_Y_DEADBAND),
+                                                    () -> MathUtil.applyDeadband(-driverXbox.getLeftX(),
+                                                                                 OperatorConstants.LEFT_X_DEADBAND),
+                                                    () -> -driverXbox.getRawAxis(4), () -> true);
+
     TeleopDrive RobotdRel = new TeleopDrive(
         drivebase,
         () -> MathUtil.applyDeadband(driverController.getRawAxis(1), OperatorConstants.LEFT_Y_DEADBAND),
@@ -112,7 +123,7 @@ public class RobotContainer
         () -> 0.0,
         () -> false
     );
-    drivebase.setDefaultCommand(FieldRel);
+    drivebase.setDefaultCommand(SuperFieldRel);
     //drivebase.setDefaultCommand(sitThereCommand);
 
     SmartDashboard.putData("Y=0.2", new TestDriveCommand(

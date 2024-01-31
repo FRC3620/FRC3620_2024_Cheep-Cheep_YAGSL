@@ -207,17 +207,16 @@ public class SwerveModule
     if (isOpenLoop)
     {
       double percentOutput = desiredState.speedMetersPerSecond / maxSpeed;
-      percentOutput = MathUtil.clamp(percentOutput, -0.2, 0.2);
+      //percentOutput = MathUtil.clamp(percentOutput, -0.3, 0.3);
       driveMotor.set(percentOutput);
-    } else
-    {
+    } else {
       if (driveMotor.getMotor() instanceof CANSparkMax) {
         CANSparkMax cdm = (CANSparkMax) driveMotor.getMotor();
         SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".outputMax", cdm.getPIDController().getOutputMax());
         SmartDashboard.putNumber("motor." + cdm.getDeviceId() + ".outputMin", cdm.getPIDController().getOutputMin());
       
       }
-      velocity = MathUtil.clamp(velocity, -0.125, 0.125);
+      //velocity = MathUtil.clamp(velocity, -0.4, 0.4);
       driveMotor.setReference(velocity, feedforward.calculate(velocity));
     }
 
