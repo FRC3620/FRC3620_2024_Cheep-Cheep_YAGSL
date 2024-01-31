@@ -10,30 +10,6 @@ java {
 
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
 
-sourceSets {
-    main {
-        java {
-            srcDir 'YAGSL-Example/src/main/java/'
-            exclude { filedetails ->
-                // https://discuss.gradle.org/t/how-to-exclude-all-files-under-a-directory-which-do-not-match-a-given-criteria/21528/2?u=fovea1959
-
-                // filedetails is org.gradle.api.internal.file.DefaultFileVisitDetails
-                // print "??? " + filedetails + "\n"
-                // print "?1  " + filedetails.class + "\n"
-                // print "?2  " + filedetails.path + "\n"
-                String filepath = filedetails.file.path.replace("\\", "/")
-                // print "?3  " + filepath + "\n"
-                if (filepath.contains("YAGSL-Example/src/main/java/frc")) {
-                    print "--- " + filepath + "\n"
-                    return true
-                }
-                print "+++ " + filepath + "\n"
-                return false
-            }
-        }
-    }
-}
-
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
 deploy {
@@ -143,4 +119,13 @@ task xxx(){
             print "-->Output directories: "+srcSet.output.classesDirs.files+"\n"
         }
     }
+}
+
+tasks.register('frc3620_swervelib_sync', Sync) {
+    from layout.projectDirectory.dir("YAGSL-Example/src/main/java/swervelib")
+    into layout.projectDirectory.dir("src/main/java/swervelib")
+}
+
+compileJava {
+    dependsOn frc3620_swervelib_sync
 }
