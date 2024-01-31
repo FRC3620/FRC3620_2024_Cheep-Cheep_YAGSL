@@ -127,5 +127,17 @@ tasks.register('frc3620_swervelib_sync', Sync) {
 }
 
 compileJava {
-    dependsOn frc3620_swervelib_sync
+//    dependsOn frc3620_swervelib_sync
+}
+
+sourceSets {
+    example {
+        java {
+            srcDir "YAGSL-Example/src/main/java"
+            exclude("frc")
+        }
+    }
+}
+dependencies {
+    implementation sourceSets.example.output
 }
