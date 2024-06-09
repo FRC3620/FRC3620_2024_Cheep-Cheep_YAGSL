@@ -367,6 +367,10 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.lockPose();
   }
 
+  public Double getMaximumAngularVelocity() {
+    return swerveDrive.getMaximumAngularVelocity();
+  }
+
   /**
    * Gets the current pitch angle of the robot, as reported by the imu.
    *
