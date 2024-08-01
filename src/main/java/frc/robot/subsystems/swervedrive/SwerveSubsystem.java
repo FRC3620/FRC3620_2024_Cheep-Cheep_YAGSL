@@ -21,6 +21,9 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.io.File;
+
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
@@ -229,6 +232,7 @@ public class SwerveSubsystem extends SubsystemBase
    *
    * @return The robot's pose
    */
+  @AutoLogOutput (key = "getPose")
   public Pose2d getPose()
   {
     return swerveDrive.getPose();
