@@ -131,7 +131,7 @@ compileJava {
 }
 
 sourceSets {
-    example {
+    swervelib {
         java {
             srcDir "YAGSL-Example/src/main/java"
             exclude("frc")
@@ -139,5 +139,5 @@ sourceSets {
     }
 }
 dependencies {
-    implementation sourceSets.example.output
+    implementation sourceSets.swervelib.output
 }
