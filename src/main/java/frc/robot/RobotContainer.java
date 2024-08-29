@@ -20,6 +20,7 @@ import frc.robot.commands.swervedrive.drivebase.AbsoluteFieldDrive;
 import frc.robot.commands.swervedrive.drivebase.SimpleTeleopDrive;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.commands.swervedrive.drivebase.TeleopDrive;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 
@@ -34,6 +35,7 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                          "swerve"));
+  private final VisionSubsystem visionSubsystem;
   // CommandJoystick rotationController = new CommandJoystick(1);
   // Replace with CommandPS4Controller or CommandJoystick if needed
   //CommandJoystick driverController = new CommandJoystick(1);
@@ -46,6 +48,7 @@ public class RobotContainer
    */
   public RobotContainer() {
   
+
     SimpleTeleopDrive teleOpDrive = new SimpleTeleopDrive(
       drivebase, 
       () -> MathUtil.applyDeadband(-driverXbox.getRawAxis(1), OperatorConstants.LEFT_X_DEADBAND), 
@@ -55,9 +58,13 @@ public class RobotContainer
   
     drivebase.setDefaultCommand(teleOpDrive);
 
+    visionSubsystem = new VisionSubsystem();
+  
+
     configureBindings();
     
   }
+  
 
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
