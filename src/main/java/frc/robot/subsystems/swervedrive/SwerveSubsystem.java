@@ -21,11 +21,15 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 
 import java.io.File;
+
+import javax.swing.text.Utilities;
+
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
@@ -200,6 +204,15 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
+    double distanceFromSpeakerMeters = LimelightHelpers.getTargetPose3d_RobotSpace("limelight").getZ();
+    double distanceFromSpeakerFeet = Units.metersToFeet(distanceFromSpeakerMeters);
+    double latDisplacementFromSpeakerM = LimelightHelpers.getTargetPose3d_RobotSpace("limelight").getX();
+    double latDisplacementFromSpeakerFt = Units.metersToFeet(latDisplacementFromSpeakerM);
+    double heightDisplacementFromSpeakerFt = 4.6;
+    double distFromSpeakerTagFt = Math.sqrt((distanceFromSpeakerFeet*distanceFromSpeakerFeet)+(latDisplacementFromSpeakerFt*latDisplacementFromSpeakerFt)+(4.6*4.6));
+    SmartDashboard.putNumber("distanceFromSpeakerFeet", distanceFromSpeakerFeet);
+    SmartDashboard.putNumber("latDisplacementFromSpeakerFt", latDisplacementFromSpeakerFt);
+    SmartDashboard.putNumber("distFromSpeakerTagFt", distFromSpeakerTagFt);
   }
 
   @Override
