@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.swervedrive;
 
+import java.io.File;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -11,7 +13,6 @@ import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -21,11 +22,11 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
-
-import java.io.File;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
@@ -46,6 +47,8 @@ public class SwerveSubsystem extends SubsystemBase
    * Maximum speed of the robot in meters per second, used to limit acceleration.
    */
   public        double      maximumSpeed = Units.feetToMeters(14.5);
+
+  public Pose2d visionPose;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -200,6 +203,26 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
+    final Field2d m_field = new Field2d();
+
+    // Do this in either robot or subsystem init
+      SmartDashboard.putData("Field", m_field);
+
+    // Do this in either robot periodic or subsystem periodic
+      m_field.setRobotPose(swerveDrive.getPose());
+
+    updateOdometryFromVision();
+
+    SmartDashboard.putNumber("Swerve.Yaw.Degrees", swerveDrive.getYaw().getDegrees());
+
+    if(visionPose != null ) {
+      SmartDashboard.putNumber("Vision.PoseX", visionPose.getX());
+      SmartDashboard.putNumber("Vision.PoseY", visionPose.getY());
+      SmartDashboard.putNumber("Vision.PoseRotation", visionPose.getRotation().getDegrees());
+    }
+        SmartDashboard.putNumber("Swerve.PoseX", swerveDrive.getPose().getX());
+        SmartDashboard.putNumber("Swerve.PoseY", swerveDrive.getPose().getY());
+        SmartDashboard.putNumber("Swerve.PoseRotation", swerveDrive.getYaw().getDegrees());
   }
 
   @Override
@@ -400,7 +423,7 @@ public class SwerveSubsystem extends SubsystemBase
 
   public void updateOdometryFromVision() {
 
-      boolean doRejectUpdate = true;
+      boolean doRejectUpdate = false;
 
       LimelightHelpers.SetRobotOrientation("limelight", swerveDrive.getYaw().getDegrees(), 0, 0, 0, 0, 0);
       LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
@@ -414,6 +437,7 @@ public class SwerveSubsystem extends SubsystemBase
       }
       if(!doRejectUpdate)
       {
+        visionPose = mt2.pose;
         swerveDrive.addVisionMeasurement(mt2.pose, mt2.timestampSeconds, VecBuilder.fill(.7, .7, 9999999));
       }
 
