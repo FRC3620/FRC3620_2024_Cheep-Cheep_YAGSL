@@ -3,9 +3,9 @@
       "front": -9.85,
       "left": -9.85
     },
-    "absoluteEncoderOffset": 241.9,
+    "absoluteEncoderOffset": 44.4,
     "drive": {
-      "type": "sparkmax",
+      "type": "talonfx",
       "id": 7,
       "canbus": null
     },
@@ -16,11 +16,11 @@
     },
     "encoder": {
       "type": "ctre_mag",
-      "id": 3,
+      "id": 4,
       "canbus": null
     },
     "inverted": {
-      "drive": false,
+      "drive": true,
       "angle": true
     },
     "absoluteEncoderInverted": false
