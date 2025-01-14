@@ -5,12 +5,21 @@
 package frc.robot.subsystems.swervedrive;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.function.DoubleSupplier;
+
+import org.json.simple.parser.ParseException;
+import static edu.wpi.first.units.Units.Meter;
+
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+import com.pathplanner.lib.util.FileVersionException;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.config.ModuleConfig;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -27,6 +36,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 
 import java.io.File;
@@ -42,6 +52,8 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public class SwerveSubsystem extends SubsystemBase
 {
 
+  RobotConfig config;
+  
   /**
    * Swerve drive object.
    */
@@ -49,9 +61,11 @@ public class SwerveSubsystem extends SubsystemBase
   /**
    * Maximum speed of the robot in meters per second, used to limit acceleration.
    */
-  public        double      maximumSpeed = Units.feetToMeters(14.5);
-
+  public        double      maximumSpeed = Units.feetToMeters(3);
+  
   public Pose2d visionPose;
+  
+  final Field2d m_field = new Field2d();
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -60,6 +74,17 @@ public class SwerveSubsystem extends SubsystemBase
    */
   public SwerveSubsystem(File directory)
   {
+          
+// Load the RobotConfig from the GUI settings. You should probably
+        // store this in your Constants file
+        //RobotConfig config;
+        try{
+          config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+          // Handle exception as needed
+          e.printStackTrace();
+        }
+
     // Angle conversion factor is 360 / (GEAR RATIO * ENCODER RESOLUTION)
     //  In this case the gear ratio is 12.8 motor revolutions per wheel rotation.
     //  The encoder resolution per motor revolution is 1 per motor revolution.
@@ -78,9 +103,10 @@ public class SwerveSubsystem extends SubsystemBase
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
     try
     {
-      swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed);
+      //swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed);
       // Alternative method if you don't want to supply the conversion factor via JSON files.
-      // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
+      
+      swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
     } catch (Exception e)
     {
       throw new RuntimeException(e);
@@ -88,42 +114,44 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.setHeadingCorrection(true); // Heading correction should only be used while controlling the robot via angle.
 
     setupPathPlanner();
+
+            // Configure AutoBuilder last
+            AutoBuilder.configure(
+              this::getPose, // Robot pose supplier
+              this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+              this::getRobotVelocity, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+              (speeds, feedforwards) -> setChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+              new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+                      new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+                      new PIDConstants(swerveDrive.swerveController.config.headingPIDF.p,
+                      swerveDrive.swerveController.config.headingPIDF.i,
+                      swerveDrive.swerveController.config.headingPIDF.d) // Rotation PID constants
+              ),
+              config, // The robot configuration
+              () -> {
+                // Boolean supplier that controls when the path will be mirrored for the red alliance
+                // This will flip the path being followed to the red side of the field.
+                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+  
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent()) {
+                  return alliance.get() == DriverStation.Alliance.Red;
+                }
+                return false;
+              },
+              this // Reference to this subsystem to set requirements
+      );
+
+    // Do this in either robot or subsystem init
+    SmartDashboard.putData("Field", m_field);
   }
 
-  /**
-   * Setup AutoBuilder for PathPlanner.
-   */
-  public void setupPathPlanner()
-  {
-    AutoBuilder.configureHolonomic(
-        this::getPose, // Robot pose supplier
-        this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
-        this::getRobotVelocity, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        this::setChassisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-        new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                                         new PIDConstants(5.0, 0.0, 0.0),
-                                         // Translation PID constants
-                                         new PIDConstants(swerveDrive.swerveController.config.headingPIDF.p,
-                                                          swerveDrive.swerveController.config.headingPIDF.i,
-                                                          swerveDrive.swerveController.config.headingPIDF.d),
-                                         // Rotation PID constants
-                                         4.5,
-                                         // Max module speed, in m/s
-                                         swerveDrive.swerveDriveConfiguration.getDriveBaseRadiusMeters(),
-                                         // Drive base radius in meters. Distance from robot center to furthest module.
-                                         new ReplanningConfig()
-                                         // Default path replanning config. See the API for the options here
-        ),
-        () -> {
-                    // Boolean supplier that controls when the path will be mirrored for the red alliance
-                    // This will flip the path being followed to the red side of the field.
-                    // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-                    var alliance = DriverStation.getAlliance();
-                    return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
-                },
-        this // Reference to this subsystem to set requirements
-                                  );
+
+  public void setupPathPlanner() {
+        
   }
+
+
 
   /**
    * Get the path follower with events.
@@ -131,10 +159,15 @@ public class SwerveSubsystem extends SubsystemBase
    * @param pathName       PathPlanner path name.
    * @param setOdomToStart Set the odometry position to the start of the path.
    * @return {@link AutoBuilder#followPath(PathPlannerPath)} path command.
+   * @throws ParseException 
+   * @throws IOException 
+   * @throws FileVersionException 
    */
-  public Command getAutonomousCommand(String pathName, boolean setOdomToStart)
+  
+  public Command getAutonomousCommand(String pathName, boolean setOdomToStart) throws FileVersionException, IOException, ParseException
   {
     // Load the path you want to follow using its name in the GUI
+    //PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
     PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
 
     if (setOdomToStart)
@@ -151,15 +184,15 @@ public class SwerveSubsystem extends SubsystemBase
    *
    * @param driveCfg      SwerveDriveConfiguration for the swerve.
    * @param controllerCfg Swerve Controller.
-   */
+   *
   public SwerveSubsystem(SwerveDriveConfiguration driveCfg, SwerveControllerConfiguration controllerCfg)
   {
-    swerveDrive = new SwerveDrive(driveCfg, controllerCfg, maximumSpeed);
+    swerveDrive = new SwerveDrive(driveCfg, controllerCfg, maximumSpeed, getPose());
 
     // See if I can force HeadingCorrection to work
     swerveDrive.setHeadingCorrection(true, 0.01);
     
-  }
+  }*/
 
   /**
    * The primary method for controlling the drivebase.  Takes a {@link Translation2d} and a rotation rate, and
@@ -203,13 +236,56 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.drive(velocity);
   }
 
+    /**
+   * Command to drive the robot using translative values and heading as a setpoint.
+   *
+   * @param translationX Translation in the X direction.
+   * @param translationY Translation in the Y direction.
+   * @param headingX     Heading X to calculate angle of the joystick.
+   * @param headingY     Heading Y to calculate angle of the joystick.
+   * @return Drive command.
+   */
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
+                              DoubleSupplier headingY)
+  {
+    return run(() -> {
+
+      Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
+                                                                                 translationY.getAsDouble()), 0.8);
+
+      // Make the robot move
+      driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
+                                                                      headingX.getAsDouble(),
+                                                                      headingY.getAsDouble(),
+                                                                      swerveDrive.getOdometryHeading().getRadians(),
+                                                                      swerveDrive.getMaximumChassisVelocity()));
+    });
+  }
+
+  /**
+   * Command to drive the robot using translative values and heading as angular velocity.
+   *
+   * @param translationX     Translation in the X direction.
+   * @param translationY     Translation in the Y direction.
+   * @param angularRotationX Rotation of the robot to set
+   * @return Drive command.
+   */
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
+  {
+    return run(() -> {
+      // Make the robot move
+      swerveDrive.drive(new Translation2d(translationX.getAsDouble() * swerveDrive.getMaximumChassisVelocity(),
+                                          translationY.getAsDouble() * swerveDrive.getMaximumChassisVelocity()),
+                        angularRotationX.getAsDouble() * swerveDrive.getMaximumChassisAngularVelocity(),
+                        true,
+                        false);
+    });
+  }
+
   @Override
   public void periodic()
   {
-    final Field2d m_field = new Field2d();
 
-    // Do this in either robot or subsystem init
-      SmartDashboard.putData("Field", m_field);
 
     // Do this in either robot periodic or subsystem periodic
       m_field.setRobotPose(swerveDrive.getPose());
@@ -403,7 +479,7 @@ public class SwerveSubsystem extends SubsystemBase
   }
 
   public Double getMaximumAngularVelocity() {
-    return swerveDrive.getMaximumAngularVelocity();
+    return swerveDrive.getMaximumChassisAngularVelocity();
   }
 
   /**
