@@ -8,18 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.function.DoubleSupplier;
 
-import org.json.simple.parser.ParseException;
 import static edu.wpi.first.units.Units.Meter;
 
-
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.pathfinding.Pathfinding;
-import com.pathplanner.lib.util.FileVersionException;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.config.ModuleConfig;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -52,8 +42,6 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public class SwerveSubsystem extends SubsystemBase
 {
 
-  RobotConfig config;
-  
   /**
    * Swerve drive object.
    */
@@ -75,15 +63,6 @@ public class SwerveSubsystem extends SubsystemBase
   public SwerveSubsystem(File directory)
   {
           
-// Load the RobotConfig from the GUI settings. You should probably
-        // store this in your Constants file
-        //RobotConfig config;
-        try{
-          config = RobotConfig.fromGUISettings();
-        } catch (Exception e) {
-          // Handle exception as needed
-          e.printStackTrace();
-        }
 
     // Angle conversion factor is 360 / (GEAR RATIO * ENCODER RESOLUTION)
     //  In this case the gear ratio is 12.8 motor revolutions per wheel rotation.
@@ -113,34 +92,7 @@ public class SwerveSubsystem extends SubsystemBase
     }
     swerveDrive.setHeadingCorrection(true); // Heading correction should only be used while controlling the robot via angle.
 
-    setupPathPlanner();
-
-            // Configure AutoBuilder last
-            AutoBuilder.configure(
-              this::getPose, // Robot pose supplier
-              this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
-              this::getRobotVelocity, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-              (speeds, feedforwards) -> setChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-              new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                      new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-                      new PIDConstants(swerveDrive.swerveController.config.headingPIDF.p,
-                      swerveDrive.swerveController.config.headingPIDF.i,
-                      swerveDrive.swerveController.config.headingPIDF.d) // Rotation PID constants
-              ),
-              config, // The robot configuration
-              () -> {
-                // Boolean supplier that controls when the path will be mirrored for the red alliance
-                // This will flip the path being followed to the red side of the field.
-                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-  
-                var alliance = DriverStation.getAlliance();
-                if (alliance.isPresent()) {
-                  return alliance.get() == DriverStation.Alliance.Red;
-                }
-                return false;
-              },
-              this // Reference to this subsystem to set requirements
-      );
+    // setupPathPlanner();
 
     // Do this in either robot or subsystem init
     SmartDashboard.putData("Field", m_field);
@@ -149,34 +101,6 @@ public class SwerveSubsystem extends SubsystemBase
 
   public void setupPathPlanner() {
         
-  }
-
-
-
-  /**
-   * Get the path follower with events.
-   *
-   * @param pathName       PathPlanner path name.
-   * @param setOdomToStart Set the odometry position to the start of the path.
-   * @return {@link AutoBuilder#followPath(PathPlannerPath)} path command.
-   * @throws ParseException 
-   * @throws IOException 
-   * @throws FileVersionException 
-   */
-  
-  public Command getAutonomousCommand(String pathName, boolean setOdomToStart) throws FileVersionException, IOException, ParseException
-  {
-    // Load the path you want to follow using its name in the GUI
-    //PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-    PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-
-    if (setOdomToStart)
-    {
-      resetOdometry(new Pose2d(path.getPoint(0).position, getHeading()));
-    }
-
-    // Create a path following command using AutoBuilder. This will also trigger event markers.
-    return AutoBuilder.followPath(path);
   }
 
   /**
